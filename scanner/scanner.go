@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	MaxIdleDuration = 15 * time.Second       // How long we should wait on empty queues before auto quitting.
+	maxIdleDuration = 15 * time.Second       // How long we should wait on empty queues before auto quitting.
 	maxScannerSleep = 100 * time.Millisecond // How long should the scanner sleep before checking for results.
 )
 
@@ -86,7 +86,7 @@ func (s *Scanner) Run() {
 			// Test a reasonable time for all jobs to be cleared, and then die if no more
 			// jobs need to be done or are returned.
 			if len(s.jobq) == 0 && len(s.doneCh) == 0 {
-				time.Sleep(MaxIdleDuration)
+				time.Sleep(maxIdleDuration)
 				if len(s.doneCh) == 0 {
 					s.Stop()
 					return
@@ -95,6 +95,16 @@ func (s *Scanner) Run() {
 			time.Sleep(maxScannerSleep) // Sleep a while.
 		}
 	}
+}
+
+// Stop performs close out procedures.
+func (s *Scanner) Stop() {
+	s.stopOnce.Do(func() {
+		s.EndTime = time.Now()
+		close(s.doneCh)
+		close(s.jobq)
+		s.wg.Wait()
+	})
 }
 
 // handleSignals responds to operating system interrupts such as application kills.
@@ -107,16 +117,6 @@ func (s *Scanner) handleSignals() {
 			os.Exit(0)
 		}
 	}()
-}
-
-// Stop performs close out procedures.
-func (s *Scanner) Stop() {
-	s.stopOnce.Do(func() {
-		s.EndTime = time.Now()
-		close(s.doneCh)
-		close(s.jobq)
-		s.wg.Wait()
-	})
 }
 
 // evaluate examines the result of the job and launches new jobs if site children are found.

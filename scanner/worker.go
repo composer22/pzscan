@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	WorkerMaxSleep = 100 * time.Millisecond // How long should a worker sleep between jobs peeks.
+	workerMaxSleep = 100 * time.Millisecond // How long should a worker sleep between jobs peeks.
 )
 
 // scanWorker is used as a go routine wrapper to handle URL scan jobs.
@@ -35,7 +35,7 @@ func scanWorker(jobq chan *scanJob, doneCh chan *scanJob, wg *sync.WaitGroup) {
 			}
 			doneCh <- job
 		default:
-			time.Sleep(WorkerMaxSleep) // Sleep before peeking again.
+			time.Sleep(workerMaxSleep) // Sleep before peeking again.
 		}
 	}
 }
