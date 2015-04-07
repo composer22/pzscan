@@ -14,14 +14,15 @@ func main() {
 	var procs int
 	var maxRunMin int
 	var maxWorkers int
-	flag.StringVar(&hostname, "h", "prezi.com", "Hostname of the host to scan (default: example.com).")
-	flag.StringVar(&hostname, "--hostname", "prezi.com", "Hostname of the host to scan (default: example.com).")
-	flag.IntVar(&procs, "X", 1, "Maximum processor cores to use (default: 1).")
-	flag.IntVar(&procs, "--procs", 1, "Maximum processor cores to use (default: 1).")
-	flag.IntVar(&maxRunMin, "m", 5, "Maximum minutes you want to run this routine (default: 5).")
-	flag.IntVar(&maxRunMin, "--minutes", 5, "Maximum minutes you want to run this routine (default: 5).")
-	flag.IntVar(&maxWorkers, "W", 4, "Maximum Job Workers (default: 4).")
-	flag.IntVar(&maxWorkers, "--workers", 4, "Maximum Job Workers (default: 4).")
+	flag.StringVar(&hostname, "h", "example.com", "Hostname to scan.")
+	flag.StringVar(&hostname, "--hostname", "example.com", "Hostname to scan.")
+	flag.IntVar(&procs, "X", 1, "Maximum processor cores to use.")
+	flag.IntVar(&procs, "--procs", 1, "Maximum processor cores to use.")
+	flag.IntVar(&maxRunMin, "m", 5, "Maximum minutes you want to run this routine.")
+	flag.IntVar(&maxRunMin, "--minutes", 5, "Maximum minutes you want to run this routine.")
+	flag.IntVar(&maxWorkers, "W", 4, "Maximum Job Workers.")
+	flag.IntVar(&maxWorkers, "--workers", 4, "Maximum Job Workers.")
+	flag.Usage = scanner.PrintUsageAndExit
 	flag.Parse()
 	runtime.GOMAXPROCS(procs)
 	s := scanner.New(hostname, maxRunMin, maxWorkers)
