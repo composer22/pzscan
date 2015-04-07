@@ -27,5 +27,4 @@ func main() {
 	runtime.GOMAXPROCS(procs)
 	s := scanner.New(hostname, maxRunMin, maxWorkers)
 	s.Run()
-	//	s.Dump() // We will post it as we test it.
 }
