@@ -107,6 +107,13 @@ func (s *Scanner) Stop() {
 	})
 }
 
+// Dump prints the results to the log output as json.
+func (s *Scanner) Dump() {
+	for _, v := range s.Tests {
+		s.log.Infof(fmt.Sprint(v))
+	}
+}
+
 // handleSignals responds to operating system interrupts such as application kills.
 func (s *Scanner) handleSignals() {
 	c := make(chan os.Signal, 1)
@@ -135,12 +142,5 @@ func (s *Scanner) evaluate(job *scanJob) {
 				s.jobq <- scanJobNew(c)
 			}
 		}
-	}
-}
-
-// Dump prints the results to the log output as json.
-func (s *Scanner) Dump() {
-	for _, v := range s.Tests {
-		s.log.Infof(fmt.Sprint(v))
 	}
 }
