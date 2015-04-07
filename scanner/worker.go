@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/composer22/pzscan/util"
 )
 
 var (
@@ -31,7 +29,7 @@ func scanWorker(jobq chan *scanJob, doneCh chan *scanJob, wg *sync.WaitGroup) {
 				job.Stat.StatusCode = -1 // We couldn't even get a HTTP status code.
 			} else {
 				job.Stat.StatusCode = resp.StatusCode
-				job.Childen = util.GetLinks(resp.Body)
+				job.Childen = AnalyzePage(resp.Body, job.Stat)
 			}
 			doneCh <- job
 		default:

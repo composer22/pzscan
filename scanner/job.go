@@ -12,9 +12,9 @@ type scanJob struct {
 }
 
 // scanJobNew is a factory for creating a new job instance.
-func scanJobNew(u *url.URL) *scanJob {
+func scanJobNew(u *url.URL, parent *url.URL) *scanJob {
 	return &scanJob{
-		Stat:    &Stats{URL: u},
+		Stat:    &Stats{URL: u, ParentURL: parent},
 		Childen: []*url.URL{},
 	}
 }

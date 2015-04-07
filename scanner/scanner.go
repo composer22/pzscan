@@ -23,19 +23,19 @@ var (
 
 // Scanner is a manager of scanning jobs and evaluates the results of the workers.
 type Scanner struct {
-	mu         sync.Mutex        // For locking access.
-	log        *logger.Logger    // Logger for writing final results.
-	RootURL    *url.URL          // The original URL that we started the scan from.
-	Tests      map[string]*Stats // URL test results go in here.
-	MaxRunMin  int               // The Maximum number of minutes we want the scanner to run.
-	MaxWorkers int               // The maximumm job workers we want in the pool.
-	StartTime  time.Time         // When the scanner started runnning.
-	ExpireTime time.Time         // The expire time: when the scanner should stop running.
-	EndTime    time.Time         // When the scanner ended.
-	jobq       chan *scanJob     // Channel to send jobs.
-	doneCh     chan *scanJob     // Channel to receive done jobs.
-	wg         sync.WaitGroup    // Synchronize close() of job channel.
-	stopOnce   sync.Once         // Used to close down the system once and once only.
+	mu         sync.Mutex                   // For locking access.
+	log        *logger.Logger               // Logger for writing final results.
+	RootURL    *url.URL                     // The original URL that we started the scan from.
+	Tests      map[string]map[string]*Stats // URL test results go in here.
+	MaxRunMin  int                          // The Maximum number of minutes we want the scanner to run.
+	MaxWorkers int                          // The maximumm job workers we want in the pool.
+	StartTime  time.Time                    // When the scanner started runnning.
+	ExpireTime time.Time                    // The expire time: when the scanner should stop running.
+	EndTime    time.Time                    // When the scanner ended.
+	jobq       chan *scanJob                // Channel to send jobs.
+	doneCh     chan *scanJob                // Channel to receive done jobs.
+	wg         sync.WaitGroup               // Synchronize close() of job channel.
+	stopOnce   sync.Once                    // Used to close down the system once and once only.
 }
 
 // New is a factory function that creates a new Scanner instance.
@@ -44,7 +44,7 @@ func New(hostname string, maxRunMin int, maxWorkers int) *Scanner {
 	return &Scanner{
 		log:        logger.New(logger.UseDefault, false),
 		RootURL:    u,
-		Tests:      make(map[string]*Stats),
+		Tests:      make(map[string]map[string]*Stats),
 		MaxRunMin:  maxRunMin,
 		MaxWorkers: maxWorkers,
 		jobq:       make(chan *scanJob, maxJobs),
@@ -69,7 +69,7 @@ func (s *Scanner) Run() {
 	s.mu.Unlock()
 
 	// Main event loop.
-	s.jobq <- scanJobNew(s.RootURL) // Create first job
+	s.jobq <- scanJobNew(s.RootURL, nil) // Create first job
 	for {
 		select {
 		case doneJob, ok := <-s.doneCh:
@@ -128,18 +128,24 @@ func (s *Scanner) handleSignals() {
 
 // evaluate examines the result of the job and launches new jobs if site children are found.
 func (s *Scanner) evaluate(job *scanJob) {
+	parent := job.Stat.ParentURL.String()
+	child := job.Stat.URL.String()
+	if s.Tests[parent] == nil {
+		s.Tests[parent] = make(map[string]*Stats)
+	}
+
 	// Store the result of this scan.
-	if _, ok := s.Tests[job.Stat.URL.Path]; !ok {
-		s.Tests[job.Stat.URL.String()] = job.Stat
+	if _, ok := s.Tests[parent][child]; !ok {
+		s.Tests[parent][child] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
 
-	// Check for valid chidren under this host, and if any is not already scanned,
+	// Check for valid chidren under this host, and if not already scanned,
 	// then submit new a job for this additional URL.
 	for _, c := range job.Childen {
 		if strings.Contains(c.Host, s.RootURL.Host) {
-			if _, ok := s.Tests[c.String()]; !ok {
-				s.jobq <- scanJobNew(c)
+			if _, ok := s.Tests[child][c.String()]; !ok {
+				s.jobq <- scanJobNew(c, job.Stat.URL)
 			}
 		}
 	}
