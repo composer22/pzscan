@@ -69,7 +69,7 @@ func (s *Scanner) Run() {
 	s.mu.Unlock()
 
 	// Main event loop.
-	s.jobq <- scanJobNew(s.RootURL, nil) // Create first job
+	s.jobq <- scanJobNew(s.RootURL, "html", nil) // Create first job.  Assume its a page.
 	for {
 		select {
 		case doneJob, ok := <-s.doneCh:
@@ -130,22 +130,29 @@ func (s *Scanner) handleSignals() {
 func (s *Scanner) evaluate(job *scanJob) {
 	parent := job.Stat.ParentURL.String()
 	child := job.Stat.URL.String()
+	// Initialize result slot
 	if s.Tests[parent] == nil {
 		s.Tests[parent] = make(map[string]*Stats)
 	}
 
-	// Store the result of this scan.
+	// Store the result of this scan and print it to the log.
 	if _, ok := s.Tests[parent][child]; !ok {
 		s.Tests[parent][child] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
 
-	// Check for valid chidren under this host, and if not already scanned,
-	// then submit new a job for this additional URL.
-	for _, c := range job.Childen {
-		if strings.Contains(c.Host, s.RootURL.Host) {
-			if _, ok := s.Tests[child][c.String()]; !ok {
-				s.jobq <- scanJobNew(c, job.Stat.URL)
+	// Check for any URL's returned and create new jobs.
+	for _, c := range job.Children {
+		switch c.URLType {
+		case "html": // Don't scan foreign pages.
+			if !strings.Contains(c.URL.Host, s.RootURL.Host) {
+				continue
+			}
+			fallthrough
+		default:
+			// If we haven't scanned this url, do it.
+			if _, ok := s.Tests[child][c.URL.String()]; !ok {
+				s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 			}
 		}
 	}

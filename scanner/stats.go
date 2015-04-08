@@ -9,6 +9,7 @@ import (
 // Stats is a construct that hold information on the scanning of a URL.
 type Stats struct {
 	URL           *url.URL  `json:"url"`        // The URL we scanned.
+	URLType       string    `json:"urlType"`    // The type of url ex: html, img, css, js etc..
 	ParentURL     *url.URL  `json:"parentURL"`  // The parent where this was located.
 	StartTime     time.Time `json:"startTime"`  // The start time of the scan.
 	EndTime       time.Time `json:"endTime"`    // The end time of the scan.
