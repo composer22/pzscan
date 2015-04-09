@@ -2,10 +2,10 @@ package scanner
 
 import (
 	"bytes"
-	"crypto/rand"
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -18,17 +18,13 @@ const (
 )
 
 var (
-	testURLRoot, _ = url.Parse("http://example.com")
+	testURLRoot, _          = url.Parse("http://example.com")
+	testBodyMetaValidLow    = strings.Repeat("*", metaDescriptionMin)
+	testBodyMetaValidHigh   = strings.Repeat("*", metaDescriptionMax)
+	testBodyMetaInvalidLow  = strings.Repeat("*", metaDescriptionMin-1)
+	testBodyMetaInvalidHigh = strings.Repeat("*", metaDescriptionMax+1)
 
-	descMin                 = make([]byte, metaDescriptionMin)
-	descMax                 = make([]byte, metaDescriptionMax)
-	descMinErr              = make([]byte, metaDescriptionMin-1)
-	descMaxErr              = make([]byte, metaDescriptionMax+1)
-	testBodyMetaValidLow    = ""
-	testBodyMetaValidHigh   = ""
-	testBodyMetaInvalidLow  = ""
-	testBodyMetaInvalidHigh = ""
-	testBodyCanonical       = []struct {
+	testBodyCanonical = []struct {
 		tag            string
 		attr           string
 		expectedResult bool
@@ -48,46 +44,26 @@ var (
 		expectedSize   int
 		expectedResult bool
 		message        string
-	}{}
-)
-
-func init() {
-	rand.Read(descMin)
-	rand.Read(descMax)
-	rand.Read(descMinErr)
-	rand.Read(descMaxErr)
-	testBodyMetaValidLow = fmt.Sprintf("%X", descMin)
-	testBodyMetaValidHigh = fmt.Sprintf("%X", descMax)
-	testBodyMetaInvalidLow = fmt.Sprintf("%X", descMinErr)
-	testBodyMetaInvalidHigh = fmt.Sprintf("%X", descMaxErr)
-
-	testBodyDescription = []struct {
-		tag            string
-		attr1          string
-		attr2          string
-		content        string
-		expectedSize   int
-		expectedResult bool
-		message        string
 	}{
-		{"meta", `name="description"`, "content", testBodyMetaValidLow, 1, true,
+		{"meta", `name="description"`, "content", testBodyMetaValidLow, 1, false,
 			"Valid low size description should not have been flagged as error."},
-		{"meta", `name="description"`, "content", testBodyMetaValidHigh, 1, true,
+		{"meta", `name="description"`, "content", testBodyMetaValidHigh, 1, false,
 			"Valid high size description should not have been flagged as error."},
-		{"meta", `name="description"`, "content", testBodyMetaValidLow, 0, false,
+		{"meta", `name="description"`, "content", testBodyMetaInvalidLow, 1, true,
 			"Invalid low size description should have been flagged as error."},
-		{"meta", `name="description"`, "content", testBodyMetaValidHigh, 0, false,
+		{"meta", `name="description"`, "content", testBodyMetaInvalidHigh, 1, true,
 			"Invalid high size description should have been flagged as error."},
-		{"Xeta", `name="description"`, "content", testBodyMetaValidLow, 0, true,
+		{"Xeta", `name="description"`, "content", testBodyMetaValidLow, 0, false,
 			"Invalid tag should have flagged a count error."},
-		{"meta", `Xame="description"`, "content", testBodyMetaValidLow, 0, true,
+		{"meta", `Xame="description"`, "content", testBodyMetaValidLow, 0, false,
 			"Invalid attr1 should have flagged a count error."},
-		{"meta", `name="Xescription"`, "content", testBodyMetaValidLow, 0, true,
+		{"meta", `name="Xescription"`, "content", testBodyMetaValidLow, 0, false,
 			"Invalid attr1 value should have flagged a count error."},
-		{"meta", `name="description"`, "content", testBodyMetaValidLow, 0, true,
+		{"meta", `name="description"`, "Kontent", testBodyMetaValidLow, 1, true,
 			"Invalid attr2 should have flagged a count error."},
 	}
-}
+)
+
 func TestBodyAnalyzerAnchor(t *testing.T) {
 	job := scanJobNew(testURLRoot, "html", nil)
 	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
@@ -130,7 +106,6 @@ func TestBodyAnalyzerMeta(t *testing.T) {
 		content := fmt.Sprintf(`%s="%s"`, tc.attr2, tc.content)
 		source := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr1, content)
 		job := scanJobNew(testURLRoot, "html", nil)
-		t.Logf("%d", len(content))
 		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
 		a := bodyAnalyzerNew(job)
 		a.analyzeBody()
