@@ -22,11 +22,7 @@ type scanJob struct {
 // scanJobNew is a factory for creating a new job instance.
 func scanJobNew(u *url.URL, urlType string, parent *url.URL) *scanJob {
 	return &scanJob{
-		Stat: &Stats{
-			URL:       u,
-			URLType:   urlType,
-			ParentURL: parent,
-		},
+		Stat:     StatsNew(u, urlType, parent),
 		Children: []*scanJobChild{},
 	}
 }

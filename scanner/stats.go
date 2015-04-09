@@ -23,6 +23,15 @@ type Stats struct {
 	StatusCode    int       `json:"status"`     // The status code we returned from the scan.
 }
 
+// StatsNew is a factory for creating a new Stats instance.
+func StatsNew(u *url.URL, urlType string, parent *url.URL) *Stats {
+	return &Stats{
+		URL:       u,
+		URLType:   urlType,
+		ParentURL: parent,
+	}
+}
+
 // String is an implentation of the Stringer interface so the structure is returned as a
 // string to fmt.Print() etc.
 func (s *Stats) String() string {

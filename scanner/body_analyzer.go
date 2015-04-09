@@ -28,7 +28,7 @@ func bodyAnalyzerNew(j *scanJob) *bodyAnalyzer {
 func (a *bodyAnalyzer) analyzeBody() {
 	p := html.NewTokenizer(a.ScanJob.Body)
 	for {
-		tt := p.Next() // get next token type
+		tt := p.Next()
 		switch tt {
 		case html.ErrorToken:
 			return
@@ -83,7 +83,6 @@ func (a *bodyAnalyzer) metaDescriptions(token *html.Token) {
 	var descriptionFound bool
 	var content string
 
-	// Validate the name and content.
 	for _, attr := range token.Attr {
 		switch attr.Key {
 		case "name":
@@ -95,7 +94,6 @@ func (a *bodyAnalyzer) metaDescriptions(token *html.Token) {
 		}
 	}
 
-	// Set stats.
 	if descriptionFound {
 		a.ScanJob.Stat.MetaCount++
 		if len(content) < metaDescriptionMin || len(content) > metaDescriptionMax {
@@ -106,12 +104,16 @@ func (a *bodyAnalyzer) metaDescriptions(token *html.Token) {
 
 // checkTitle will scan a title element for content and set stats.
 func (a *bodyAnalyzer) checkTitle(p *html.Tokenizer) {
-	textNode := p.Next() // get the text
-	title := textNode.String()
+	var title string
+
+	// Try and get the text
+	tokenType := p.Next()
+	if tokenType == html.TextToken {
+		token := p.Token()
+		title = token.String()
+	}
 
 	a.ScanJob.Stat.TitleCount++
-
-	// Check size
 	if len(title) < titleMin || len(title) > titleMax {
 		a.ScanJob.Stat.TitleSizedErr = true
 	}
@@ -122,8 +124,19 @@ func (a *bodyAnalyzer) checkImages(token *html.Token) {
 	var altFound bool
 
 	for _, attr := range token.Attr {
-		if attr.Key == "alt" && len(attr.Val) > 0 {
-			altFound = true
+		switch attr.Key {
+		case "alt":
+			if len(attr.Val) > 0 {
+				altFound = true
+			}
+		case "src":
+			u, err := url.Parse(attr.Val)
+			if err == nil && u.Path != "" {
+				a.ScanJob.Children = append(a.ScanJob.Children, &scanJobChild{
+					URL:     u,
+					URLType: "img",
+				})
+			}
 		}
 	}
 
