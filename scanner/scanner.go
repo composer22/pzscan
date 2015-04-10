@@ -64,17 +64,20 @@ func (s *Scanner) Run() {
 		s.wg.Add(1)
 		go scanWorker(s.jobq, s.doneCh, &s.wg)
 	}
+
 	s.StartTime = time.Now()
 	s.ExpireTime = s.StartTime.Add(time.Duration(s.MaxRunMin) * time.Minute)
 	s.mu.Unlock()
 
 	// Main event loop.
-	s.jobq <- scanJobNew(s.RootURL, "html", nil) // Create first job.  Assume its a page.
+	p, _ := url.Parse(fmt.Sprintf("http://%s", ""))
+	s.jobq <- scanJobNew(s.RootURL, "html", p) // Create first job.  Assume its a page.
 	for {
 		select {
 		case doneJob, ok := <-s.doneCh:
 			if !ok {
 				s.Stop()
+				return
 			}
 			s.evaluate(doneJob)
 		default:
@@ -131,7 +134,7 @@ func (s *Scanner) evaluate(job *scanJob) {
 	parent := job.Stat.ParentURL.String()
 	child := job.Stat.URL.String()
 	// Initialize result slot
-	if s.Tests[parent] == nil {
+	if _, ok := s.Tests[parent]; !ok {
 		s.Tests[parent] = make(map[string]*Stats)
 	}
 
@@ -140,9 +143,16 @@ func (s *Scanner) evaluate(job *scanJob) {
 		s.Tests[parent][child] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
-
 	// Check for any URL's returned and create new jobs.
 	for _, c := range job.Children {
+		// No Scheme?  Assume http:
+		if c.URL.Scheme == "" {
+			c.URL.Scheme = "http"
+		}
+		// No host?  Assume its us.
+		if c.URL.Host == "" {
+			c.URL.Host = s.RootURL.Host
+		}
 		switch c.URLType {
 		case "html": // Don't scan foreign pages.
 			if !strings.Contains(c.URL.Host, s.RootURL.Host) {

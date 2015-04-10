@@ -12,8 +12,8 @@ const (
 		`"urlType":"html","parentURL":{"Scheme":"http","Opaque":"","User":null,"Host":` +
 		`"www.example.com","Path":"","RawQuery":"","Fragment":""},` +
 		`"startTime":"0001-01-01T00:00:00Z","endTime":"0001-01-01T00:00:00Z",` +
-		`"canonical":false,"metaExist":0,"metaSized":false,"titleExist":0,"titleSized":` +
-		`false,"altTags":false,"h1Exist":0,"status":0},"body":null,"children":[]}`
+		`"canonical":false,"metaExist":0,"metaSizedErr":false,"titleExist":0,"titleSizedErr":` +
+		`false,"altTagsErr":false,"h1Exist":0,"status":0},"body":null,"children":[]}`
 )
 
 func TestScanJobNew(t *testing.T) {

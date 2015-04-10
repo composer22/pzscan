@@ -159,7 +159,7 @@ func TestBodyAnalyzerMeta(t *testing.T) {
 
 func TestBodyAnalyzerTitle(t *testing.T) {
 	t.Parallel()
-	for i, tc := range testBodyTitle {
+	for _, tc := range testBodyTitle {
 		source := fmt.Sprintf(testBodyTemplateTag, tc.tag, tc.text, tc.tag)
 		job := scanJobNew(testURLRoot, "html", nil)
 		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
@@ -167,8 +167,6 @@ func TestBodyAnalyzerTitle(t *testing.T) {
 		a.analyzeBody()
 		if a.ScanJob.Stat.TitleCount != tc.expectedSize ||
 			a.ScanJob.Stat.TitleSizedErr != tc.expectedResult {
-			t.Log(source)
-			t.Logf("%d stats: %d %d %t ", i, len(source), a.ScanJob.Stat.TitleCount, a.ScanJob.Stat.TitleSizedErr)
 			t.Errorf(tc.message)
 		}
 	}
