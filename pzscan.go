@@ -14,7 +14,8 @@ func main() {
 	var procs int
 	var maxRunMin int
 	var maxWorkers int
-	flag.StringVar(&hostname, "h", "example.com", "Hostname to scan.")
+
+	flag.StringVar(&hostname, "H", "example.com", "Hostname to scan.")
 	flag.StringVar(&hostname, "--hostname", "example.com", "Hostname to scan.")
 	flag.IntVar(&procs, "X", 1, "Maximum processor cores to use.")
 	flag.IntVar(&procs, "--procs", 1, "Maximum processor cores to use.")

@@ -1,7 +1,19 @@
 # pzscan
 
-A simple site scanner to retrieve links written in golang.
+A simple site scanner to validate links and content is SEO compliant.
 
+## Description
+
+This simple application will transverse a given URL and report back the following confirmations:
+
+* All resources can be loaded on the page (CSS, js, images), and all links point to a working URL (non-4xx/non-5xx response).
+* Pages have a canonical link tag.
+* Pages have meta descriptions and each description is between 131 and 154 characters.
+* Pages have title tags between 57 and 68 characters.
+* Images have "alt" attributes.
+* Pages are allowed only one "h1" tag.
+
+Each element result is written to the log as INFO with a json encoded structure of the statistics of the scan.
 
 ## Usage
 
@@ -10,7 +22,7 @@ A simple site scanner to retrieve links written in golang.
 Usage: pzscan [options...]
 
 Server options:
-    -h, --hostname HOSTNAME          HOSTNAME to scan (default: example.com).
+    -H, --hostname HOSTNAME          HOSTNAME to scan (default: example.com).
     -X, --procs MAX                  MAX processor cores to use from the
 	                                 machine (default 1).
     -m, --minutes MAX                MAX minutes to live (default: 5).
@@ -23,7 +35,7 @@ Example:
 
     # Scan craigslist; 1 processor; 2 min max; 10 worker go routines.
 
-    ./pzscan -h "craigslist.com" -X 1 -m 2 -W 10
+    ./pzscan -H "craigslist.com" -X 1 -m 2 -W 10
 
 ```
 
