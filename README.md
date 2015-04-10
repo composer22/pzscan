@@ -1,4 +1,8 @@
 # pzscan
+[![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/composer22/pzscan.svg?branch=master)](http://travis-ci.org/composer22/pzscan)
+[![Current Release](https://img.shields.io/badge/release-none-blue.svg)](https://github.com/composer22/pzdemo/releases/tag/none)
+[![Coverage Status](https://coveralls.io/repos/composer22/pzscan/badge.svg?branch=master)](https://coveralls.io/r/composer22/pzscan?branch=master)
 
 A simple site scanner to validate links and content is SEO compliant.
 
