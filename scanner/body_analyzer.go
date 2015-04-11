@@ -47,6 +47,8 @@ func (a *bodyAnalyzer) analyzeBody() {
 				a.checkImages(&token)
 			case "h1":
 				a.checkH1()
+			case "script":
+				a.checkJS(&token)
 			default:
 			}
 		default: // NOP
@@ -70,10 +72,31 @@ func (a *bodyAnalyzer) anchorFound(token *html.Token) {
 }
 
 // canonicalFound will scan a link element for a rel="canonical" and set stats
+// or if a CSS file was identified, record it as a new job.
 func (a *bodyAnalyzer) canonicalFound(token *html.Token) {
+	var csFound bool
+	var href string
 	for _, attr := range token.Attr {
-		if attr.Key == "rel" && attr.Val == "canonical" {
-			a.ScanJob.Stat.Canonical = true // Canonical found
+		switch attr.Key {
+		case "rel":
+			switch attr.Val {
+			case "canonical":
+				a.ScanJob.Stat.Canonical = true // Canonical found
+			case "stylesheet":
+				csFound = true
+			}
+		case "href":
+			href = attr.Val
+		}
+	}
+
+	if csFound && href != "" {
+		u, err := url.Parse(href)
+		if err == nil {
+			a.ScanJob.Children = append(a.ScanJob.Children, &scanJobChild{
+				URL:     u,
+				URLType: "css",
+			})
 		}
 	}
 }
@@ -148,4 +171,19 @@ func (a *bodyAnalyzer) checkImages(token *html.Token) {
 // checkH1 will record h1 stats.
 func (a *bodyAnalyzer) checkH1() {
 	a.ScanJob.Stat.H1Count++
+}
+
+// checkJS will scan a script eelement for an src tag and sets stats.
+func (a *bodyAnalyzer) checkJS(token *html.Token) {
+	for _, attr := range token.Attr {
+		if attr.Key == "src" {
+			u, err := url.Parse(attr.Val)
+			if err == nil && u.Path != "" {
+				a.ScanJob.Children = append(a.ScanJob.Children, &scanJobChild{
+					URL:     u,
+					URLType: "js",
+				})
+			}
+		}
+	}
 }

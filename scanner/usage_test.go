@@ -6,5 +6,5 @@ import (
 
 func TestPrintUsageAndExit(t *testing.T) {
 	t.Parallel()
-	t.Skipf("Unable to test because of exit()")
+	t.Skipf("Cannot test due to Exit()")
 }

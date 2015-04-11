@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -102,6 +103,19 @@ var (
 	}
 )
 
+func TestBodyAnalyzerNew(t *testing.T) {
+	t.Parallel()
+	job := scanJobNew(testURLRoot, "html", nil)
+	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
+	a := bodyAnalyzerNew(job)
+	if fmt.Sprint(reflect.TypeOf(a.ScanJob)) != "*scanner.scanJob" {
+		t.Errorf("*scanJob not initialized.")
+	}
+	if a.ScanJob == nil {
+		t.Errorf("*scanJob not initialized.")
+	}
+}
+
 func TestBodyAnalyzerAnchor(t *testing.T) {
 	t.Parallel()
 	job := scanJobNew(testURLRoot, "html", nil)
@@ -159,7 +173,7 @@ func TestBodyAnalyzerMeta(t *testing.T) {
 
 func TestBodyAnalyzerTitle(t *testing.T) {
 	t.Parallel()
-	for i, tc := range testBodyTitle {
+	for _, tc := range testBodyTitle {
 		source := fmt.Sprintf(testBodyTemplateTag, tc.tag, tc.text, tc.tag)
 		job := scanJobNew(testURLRoot, "html", nil)
 		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
@@ -167,8 +181,6 @@ func TestBodyAnalyzerTitle(t *testing.T) {
 		a.analyzeBody()
 		if a.ScanJob.Stat.TitleCount != tc.expectedSize ||
 			a.ScanJob.Stat.TitleSizedErr != tc.expectedResult {
-			t.Log(source)
-			t.Logf("%d stats: %d %d %t ", i, len(source), a.ScanJob.Stat.TitleCount, a.ScanJob.Stat.TitleSizedErr)
 			t.Errorf(tc.message)
 		}
 	}
@@ -200,4 +212,9 @@ func TestBodyH1(t *testing.T) {
 			t.Errorf(tc.message)
 		}
 	}
+}
+
+func TestBodyJS(t *testing.T) {
+	t.Parallel()
+	t.Skipf("Covered by TestScanRun")
 }

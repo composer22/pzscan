@@ -64,17 +64,20 @@ func (s *Scanner) Run() {
 		s.wg.Add(1)
 		go scanWorker(s.jobq, s.doneCh, &s.wg)
 	}
+
 	s.StartTime = time.Now()
 	s.ExpireTime = s.StartTime.Add(time.Duration(s.MaxRunMin) * time.Minute)
 	s.mu.Unlock()
 
 	// Main event loop.
-	s.jobq <- scanJobNew(s.RootURL, "html", nil) // Create first job.  Assume its a page.
+	p, _ := url.Parse(fmt.Sprintf("http://%s", ""))
+	s.jobq <- scanJobNew(s.RootURL, "html", p) // Create first job.  Assume its a page.
 	for {
 		select {
 		case doneJob, ok := <-s.doneCh:
 			if !ok {
 				s.Stop()
+				return
 			}
 			s.evaluate(doneJob)
 		default:
@@ -107,13 +110,6 @@ func (s *Scanner) Stop() {
 	})
 }
 
-// Dump prints the results to the log output as json.
-func (s *Scanner) Dump() {
-	for _, v := range s.Tests {
-		s.log.Infof(fmt.Sprint(v))
-	}
-}
-
 // handleSignals responds to operating system interrupts such as application kills.
 func (s *Scanner) handleSignals() {
 	c := make(chan os.Signal, 1)
@@ -131,28 +127,46 @@ func (s *Scanner) evaluate(job *scanJob) {
 	parent := job.Stat.ParentURL.String()
 	child := job.Stat.URL.String()
 	// Initialize result slot
-	if s.Tests[parent] == nil {
-		s.Tests[parent] = make(map[string]*Stats)
+	if _, ok := s.Tests[child]; !ok {
+		s.Tests[child] = make(map[string]*Stats)
 	}
 
 	// Store the result of this scan and print it to the log.
-	if _, ok := s.Tests[parent][child]; !ok {
-		s.Tests[parent][child] = job.Stat
+	if _, ok := s.Tests[child][parent]; !ok {
+		s.Tests[child][parent] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
-
 	// Check for any URL's returned and create new jobs.
 	for _, c := range job.Children {
+		// No Scheme?  Assume http:
+		if c.URL.Scheme == "" {
+			c.URL.Scheme = "http"
+		}
+		// No host?  Assume its us.
+		if c.URL.Host == "" {
+			c.URL.Host = s.RootURL.Host
+		}
 		switch c.URLType {
 		case "html": // Don't scan foreign pages.
 			if !strings.Contains(c.URL.Host, s.RootURL.Host) {
 				continue
 			}
-			fallthrough
-		default:
-			// If we haven't scanned this url, do it.
-			if _, ok := s.Tests[child][c.URL.String()]; !ok {
+			// If we haven't scanned this url, do it. [new][pagefound]
+			if _, ok := s.Tests[c.URL.String()][child]; !ok {
 				s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
+			}
+		default:
+			// If it is a site asset
+			if strings.Contains(c.URL.Host, s.RootURL.Host) {
+				// If we haven't scanned this asset, do it.
+				if _, ok := s.Tests[c.URL.String()]; !ok {
+					s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
+				}
+			} else { // Foreign asset
+				// If we haven't scanned this url, do it. [new][pagefound]
+				if _, ok := s.Tests[c.URL.String()][child]; !ok {
+					s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
+				}
 			}
 		}
 	}
