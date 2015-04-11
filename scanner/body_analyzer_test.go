@@ -213,3 +213,8 @@ func TestBodyH1(t *testing.T) {
 		}
 	}
 }
+
+func TestBodyJS(t *testing.T) {
+	t.Parallel()
+	t.Skipf("Covered by TestScanRun")
+}

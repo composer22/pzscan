@@ -33,10 +33,12 @@ const (
 	testInvalidPage = `
 	<html>
 	  <head>
-	        <!-- missing canonical -->
-			<meta name="description" content="short description">
-			<meta name="description" content="too many?">
-			<title>Short Title</title>
+       <!-- missing canonical -->
+	    <link rel="stylesheet" href="example.css">
+		<meta name="description" content="short description">
+		<meta name="description" content="too many?">
+		 <script src="example.js"></script>
+		<title>Short Title</title>
 	  </head>
 	  <body>
 	   <h1>First no error</hi>
@@ -62,8 +64,31 @@ var (
 		{"html", true, 1, false, 1, false, false, 1, 200},
 		{"img", false, 0, false, 0, false, false, 0, 200},
 		{"html", false, 2, true, 1, true, true, 2, 200},
+		{"css", false, 0, false, 0, false, false, 0, 200},
+		{"js", false, 0, false, 0, false, false, 0, 200},
 	}
+	testScannerLookup = make(map[string]struct {
+		urlType       string
+		canonical     bool
+		metaCount     int
+		metaSizedErr  bool
+		titleCount    int
+		titleSizedErr bool
+		altTagsErr    bool
+		h1Count       int
+		status        int
+	})
 )
+
+func init() {
+	for i, v := range testScannerResults {
+		key := v.urlType
+		if i > 0 && key == "html" {
+			key = "html2"
+		}
+		testScannerLookup[key] = v
+	}
+}
 
 func TestScanNew(t *testing.T) {
 	t.Parallel()
@@ -127,41 +152,43 @@ func TestScanRun(t *testing.T) {
 	scanner.Run()
 	server.Close()
 
-	var i int
 	for _, children := range scanner.Tests {
 		for _, stat := range children {
-			if stat.URLType != testScannerResults[i].urlType {
+			lookupType := stat.URLType
+			if lookupType == "html" && stat.URL.Path == "/page2" {
+				lookupType = "html2"
+			}
+			expectedResult := testScannerLookup[lookupType]
+			if stat.URLType != expectedResult.urlType {
 				t.Errorf("Invalid URL type returned.")
 			}
-			if stat.Canonical != testScannerResults[i].canonical {
+			if stat.Canonical != expectedResult.canonical {
 				t.Errorf("Canonical tested incorrectly.")
 			}
-			if stat.MetaCount != testScannerResults[i].metaCount {
+			if stat.MetaCount != expectedResult.metaCount {
 				t.Errorf("MetaCount tested incorrectly.")
 			}
-			if stat.MetaSizedErr != testScannerResults[i].metaSizedErr {
+			if stat.MetaSizedErr != expectedResult.metaSizedErr {
 				t.Errorf("MetaSizedErr tested incorrectly.")
 			}
-			if stat.TitleCount != testScannerResults[i].titleCount {
+			if stat.TitleCount != expectedResult.titleCount {
 				t.Errorf("TitleCount tested incorrectly.")
 			}
-			if stat.TitleSizedErr != testScannerResults[i].titleSizedErr {
+			if stat.TitleSizedErr != expectedResult.titleSizedErr {
 				t.Errorf("TitleSizedErr tested incorrectly.")
 			}
-			if stat.AltTagsErr != testScannerResults[i].altTagsErr {
+			if stat.AltTagsErr != expectedResult.altTagsErr {
 				t.Errorf("AltTagsErr tested incorrectly.")
 			}
-			if stat.H1Count != testScannerResults[i].h1Count {
+			if stat.H1Count != expectedResult.h1Count {
 				t.Errorf("H1Count tested incorrectly.")
 			}
 			if stat.StatusCode != http.StatusOK {
 				t.Errorf("Status Code returned tested incorrectly.")
 			}
 		}
-		i++
 	}
 	scanner.Stop()
-
 }
 
 func TestScanStop(t *testing.T) {
