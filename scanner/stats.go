@@ -14,12 +14,12 @@ type Stats struct {
 	StartTime     time.Time `json:"startTime"`     // The start time of the scan.
 	EndTime       time.Time `json:"endTime"`       // The end time of the scan.
 	Canonical     bool      `json:"canonical"`     // Did this page contain a canonical link?
-	MetaCount     int       `json:"metaExist"`     // Does meta description exist on the page?
+	MetaCount     int       `json:"metaCount"`     // Does meta description exist on the page?
 	MetaSizedErr  bool      `json:"metaSizedErr"`  // Are meta descriptions the proper size?
-	TitleCount    int       `json:"titleExist"`    // Does title exist on the page?
+	TitleCount    int       `json:"titleCount"`    // Does title exist on the page?
 	TitleSizedErr bool      `json:"titleSizedErr"` // Does the title meet size criteria?
 	AltTagsErr    bool      `json:"altTagsErr"`    // Did alt tags exist for all images on this page?
-	H1Count       int       `json:"h1Exist"`       // Does an h1 tag exist on the page and is it unique?
+	H1Count       int       `json:"h1Count"`       // Does an h1 tag exist on the page and is it unique?
 	StatusCode    int       `json:"status"`        // The status code we returned from the scan.
 }
 

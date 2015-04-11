@@ -3,6 +3,7 @@ package scanner
 import (
 	"fmt"
 	"net/url"
+	"reflect"
 	"testing"
 )
 
@@ -12,8 +13,8 @@ const (
 		`"urlType":"html","parentURL":{"Scheme":"http","Opaque":"","User":null,"Host":` +
 		`"www.example.com","Path":"","RawQuery":"","Fragment":""},` +
 		`"startTime":"0001-01-01T00:00:00Z","endTime":"0001-01-01T00:00:00Z",` +
-		`"canonical":false,"metaExist":0,"metaSizedErr":false,"titleExist":0,"titleSizedErr":` +
-		`false,"altTagsErr":false,"h1Exist":0,"status":0},"body":null,"children":[]}`
+		`"canonical":false,"metaCount":0,"metaSizedErr":false,"titleCount":0,"titleSizedErr":` +
+		`false,"altTagsErr":false,"h1Count":0,"status":0},"body":null,"children":[]}`
 )
 
 func TestScanJobNew(t *testing.T) {
@@ -33,6 +34,17 @@ func TestScanJobNew(t *testing.T) {
 	if len(job.Children) != 0 {
 		t.Errorf("Invalid children")
 	}
+	if fmt.Sprint(reflect.TypeOf(job.Stat)) != "*scanner.Stats" {
+		t.Errorf("*scanner.Stats not initialized.")
+	}
+	if job.Body != nil {
+		t.Errorf("Body not initialized correcly.")
+	}
+
+	if fmt.Sprint(reflect.TypeOf(job.Children)) != "[]*scanner.scanJobChild" {
+		t.Errorf("[]*scanJobChild not initialized.")
+	}
+
 }
 
 func TestScanJobPrint(t *testing.T) {

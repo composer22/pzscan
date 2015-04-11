@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -101,6 +102,19 @@ var (
 		{strings.Repeat(fmt.Sprintf(testBodyTemplateTag, "X1", "", "X1"), 2), 0, "Multiple h1 elements should not have been found."},
 	}
 )
+
+func TestBodyAnalyzerNew(t *testing.T) {
+	t.Parallel()
+	job := scanJobNew(testURLRoot, "html", nil)
+	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
+	a := bodyAnalyzerNew(job)
+	if fmt.Sprint(reflect.TypeOf(a.ScanJob)) != "*scanner.scanJob" {
+		t.Errorf("*scanJob not initialized.")
+	}
+	if a.ScanJob == nil {
+		t.Errorf("*scanJob not initialized.")
+	}
+}
 
 func TestBodyAnalyzerAnchor(t *testing.T) {
 	t.Parallel()

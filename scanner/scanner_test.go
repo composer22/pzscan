@@ -19,13 +19,13 @@ const (
 	testValidPageTemplate = `
 	<html>
 	  <head>
-	        <link rel="canonical" href="http://example2.com">
-			<meta name="description" content="%s">
-			<title>%s</title>
+	  <link rel="canonical" href="http://example2.com">
+	  <meta name="description" content="%s">
+      <title>%s</title>
 	  </head>
 	  <body>
-	   <h1>First</hi>
-	   <img href="example.jpg" alt="valid test image">
+	   <h1>Only One</hi>
+	   <img src="example.jpg" alt="valid test image">
 		<a href="/page2">Link to page 2</a>
 	  </body>
 	</html>
@@ -33,16 +33,36 @@ const (
 	testInvalidPage = `
 	<html>
 	  <head>
-			<meta name="description" content="too short a text">
-			<title>Test Page 2</title>
+	        <!-- missing canonical -->
+			<meta name="description" content="short description">
+			<meta name="description" content="too many?">
+			<title>Short Title</title>
 	  </head>
 	  <body>
 	   <h1>First no error</hi>
-	   <h1>Second causes error</hi>
-	  <img href="example.jpg">
+	   <h1>Second too many</hi>
+	  <img src="example.jpg" xaltm="missing alt">
 	  </body>
 	</html>
 `
+)
+
+var (
+	testScannerResults = []struct {
+		urlType       string
+		canonical     bool
+		metaCount     int
+		metaSizedErr  bool
+		titleCount    int
+		titleSizedErr bool
+		altTagsErr    bool
+		h1Count       int
+		status        int
+	}{
+		{"html", true, 1, false, 1, false, false, 1, 200},
+		{"img", false, 0, false, 0, false, false, 0, 200},
+		{"html", false, 2, true, 1, true, true, 2, 200},
+	}
 )
 
 func TestScanNew(t *testing.T) {
@@ -106,26 +126,55 @@ func TestScanRun(t *testing.T) {
 	scanner := New(u.Host, testMaxRunMin, testMaxWorkers)
 	scanner.Run()
 	server.Close()
-	// TODO Continue testing.  We have images that aren't loading.
-	//	fmt.Println(scanner.Tests)
+
+	var i int
+	for _, children := range scanner.Tests {
+		for _, stat := range children {
+			if stat.URLType != testScannerResults[i].urlType {
+				t.Errorf("Invalid URL type returned.")
+			}
+			if stat.Canonical != testScannerResults[i].canonical {
+				t.Errorf("Canonical tested incorrectly.")
+			}
+			if stat.MetaCount != testScannerResults[i].metaCount {
+				t.Errorf("MetaCount tested incorrectly.")
+			}
+			if stat.MetaSizedErr != testScannerResults[i].metaSizedErr {
+				t.Errorf("MetaSizedErr tested incorrectly.")
+			}
+			if stat.TitleCount != testScannerResults[i].titleCount {
+				t.Errorf("TitleCount tested incorrectly.")
+			}
+			if stat.TitleSizedErr != testScannerResults[i].titleSizedErr {
+				t.Errorf("TitleSizedErr tested incorrectly.")
+			}
+			if stat.AltTagsErr != testScannerResults[i].altTagsErr {
+				t.Errorf("AltTagsErr tested incorrectly.")
+			}
+			if stat.H1Count != testScannerResults[i].h1Count {
+				t.Errorf("H1Count tested incorrectly.")
+			}
+			if stat.StatusCode != http.StatusOK {
+				t.Errorf("Status Code returned tested incorrectly.")
+			}
+		}
+		i++
+	}
+	scanner.Stop()
+
 }
 
 func TestScanStop(t *testing.T) {
 	t.Parallel()
-	t.Skipf("TODO")
-}
-
-func TestScanDump(t *testing.T) {
-	t.Parallel()
-	t.Skipf("TODO")
+	t.Skip("Covered by TestScanRun")
 }
 
 func TestScanHandleSignals(t *testing.T) {
 	t.Parallel()
-	t.Skipf("Cannot test due to exit point.")
+	t.Skip("Cannot test due to Exit()")
 }
 
 func TestScanEvaluate(t *testing.T) {
 	t.Parallel()
-	t.Skipf("TODO")
+	t.Skip("Covered by TestScanRun")
 }
