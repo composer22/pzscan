@@ -4,7 +4,7 @@
 [![Current Release](https://img.shields.io/badge/release-none-blue.svg)](https://github.com/composer22/pzscan/releases/tag/none)
 [![Coverage Status](https://coveralls.io/repos/composer22/pzscan/badge.svg?branch=master)](https://coveralls.io/r/composer22/pzscan?branch=master)
 
-A simple site scanner to validate links and content is SEO compliant.
+A simple site scanner in golang to validate links and content are SEO compliant.
 
 ## Description
 
@@ -17,7 +17,9 @@ This simple application will transverse a given URL and report back the followin
 * Images have "alt" attributes.
 * Pages are allowed only one "h1" tag.
 
-Each element result is written to the log as INFO with a json encoded structure of the statistics of the scan.
+Note:  Images, javascript, and css files are tested for downloading separately. css files are not parsed for img content.
+
+Each element result is written to the log as an INFO message with a json encoded structure of the statistics of the scan. These can then be imported into a database for queries.
 
 ## Usage
 
@@ -37,9 +39,9 @@ Common options:
 
 Example:
 
-    # Scan craigslist; 1 processor; 2 min max; 10 worker go routines.
+    # Scan example.com; 1 processor; 2 min max; 10 worker go routines.
 
-    ./pzscan -H "craigslist.com" -X 1 -m 2 -W 10
+    ./pzscan -H "example.com" -X 1 -m 2 -W 10
 
 ```
 

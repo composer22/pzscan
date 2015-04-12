@@ -1,4 +1,4 @@
-// pzscan is a simple web crawler and link tester.
+// pzscan is a simple SEO web crawler and link tester.
 package main
 
 import (

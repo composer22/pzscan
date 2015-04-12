@@ -24,7 +24,7 @@ func bodyAnalyzerNew(j *scanJob) *bodyAnalyzer {
 	return &bodyAnalyzer{ScanJob: j}
 }
 
-// AnalyzePage parses a page and analyzes it for SEO purposes, placing the results in stats.
+// analyzeBody parses a page and analyzes it for SEO purposes, placing the results in stats.
 func (a *bodyAnalyzer) analyzeBody() {
 	p := html.NewTokenizer(a.ScanJob.Body)
 	for {
@@ -36,19 +36,19 @@ func (a *bodyAnalyzer) analyzeBody() {
 			token := p.Token()
 			switch token.DataAtom.String() {
 			case "a":
-				a.anchorFound(&token)
+				a.anchorFound(token)
 			case "link":
-				a.canonicalFound(&token)
+				a.canonicalFound(token)
 			case "meta":
-				a.metaDescriptions(&token)
+				a.metaDescriptions(token)
 			case "title":
 				a.checkTitle(p)
 			case "img":
-				a.checkImages(&token)
+				a.checkImages(token)
 			case "h1":
 				a.checkH1()
 			case "script":
-				a.checkJS(&token)
+				a.checkJS(token)
 			default:
 			}
 		default: // NOP
@@ -57,7 +57,7 @@ func (a *bodyAnalyzer) analyzeBody() {
 }
 
 // anchorFound will scan an anchor element for new URLs
-func (a *bodyAnalyzer) anchorFound(token *html.Token) {
+func (a *bodyAnalyzer) anchorFound(token html.Token) {
 	for _, attr := range token.Attr {
 		if attr.Key == "href" {
 			u, err := url.Parse(attr.Val)
@@ -72,8 +72,8 @@ func (a *bodyAnalyzer) anchorFound(token *html.Token) {
 }
 
 // canonicalFound will scan a link element for a rel="canonical" and set stats
-// or if a CSS file was identified, record it as a new job.
-func (a *bodyAnalyzer) canonicalFound(token *html.Token) {
+// or if a CSS file was identified, record it as a new scan job.
+func (a *bodyAnalyzer) canonicalFound(token html.Token) {
 	var csFound bool
 	var href string
 	for _, attr := range token.Attr {
@@ -89,7 +89,7 @@ func (a *bodyAnalyzer) canonicalFound(token *html.Token) {
 			href = attr.Val
 		}
 	}
-
+	// Store any CSS found as a new job
 	if csFound && href != "" {
 		u, err := url.Parse(href)
 		if err == nil {
@@ -102,7 +102,7 @@ func (a *bodyAnalyzer) canonicalFound(token *html.Token) {
 }
 
 // metaDescriptions will scan a meta element for description information and set stats
-func (a *bodyAnalyzer) metaDescriptions(token *html.Token) {
+func (a *bodyAnalyzer) metaDescriptions(token html.Token) {
 	var descriptionFound bool
 	var content string
 
@@ -143,7 +143,7 @@ func (a *bodyAnalyzer) checkTitle(p *html.Tokenizer) {
 }
 
 // checkImages will scan an img element for an alt tag and sets stats.
-func (a *bodyAnalyzer) checkImages(token *html.Token) {
+func (a *bodyAnalyzer) checkImages(token html.Token) {
 	var altFound bool
 
 	for _, attr := range token.Attr {
@@ -174,7 +174,7 @@ func (a *bodyAnalyzer) checkH1() {
 }
 
 // checkJS will scan a script eelement for an src tag and sets stats.
-func (a *bodyAnalyzer) checkJS(token *html.Token) {
+func (a *bodyAnalyzer) checkJS(token html.Token) {
 	for _, attr := range token.Attr {
 		if attr.Key == "src" {
 			u, err := url.Parse(attr.Val)
