@@ -17,7 +17,7 @@ This simple application will transverse a given URL and report back the followin
 * Images have "alt" attributes.
 * Pages are allowed only one "h1" tag.
 
-Each element result is written to the log as INFO with a json encoded structure of the statistics of the scan.
+Each element result is written to the log as INFO with a json encoded structure of the statistics of the scan. Json can then be imported into a database for further queries.
 
 ## Usage
 
