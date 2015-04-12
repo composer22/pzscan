@@ -44,7 +44,6 @@ func TestScanJobNew(t *testing.T) {
 	if fmt.Sprint(reflect.TypeOf(job.Children)) != "[]*scanner.scanJobChild" {
 		t.Errorf("[]*scanJobChild not initialized.")
 	}
-
 }
 
 func TestScanJobPrint(t *testing.T) {

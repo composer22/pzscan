@@ -50,7 +50,7 @@ const (
 )
 
 var (
-	testScannerResults = []struct {
+	testScannerLookup = map[string]struct {
 		urlType       string
 		canonical     bool
 		metaCount     int
@@ -61,34 +61,13 @@ var (
 		h1Count       int
 		status        int
 	}{
-		{"html", true, 1, false, 1, false, false, 1, 200},
-		{"img", false, 0, false, 0, false, false, 0, 200},
-		{"html", false, 2, true, 1, true, true, 2, 200},
-		{"css", false, 0, false, 0, false, false, 0, 200},
-		{"js", false, 0, false, 0, false, false, 0, 200},
+		"html":  {"html", true, 1, false, 1, false, false, 1, 200},
+		"img":   {"img", false, 0, false, 0, false, false, 0, 200},
+		"html2": {"html", false, 2, true, 1, true, true, 2, 200},
+		"css":   {"css", false, 0, false, 0, false, false, 0, 200},
+		"js":    {"js", false, 0, false, 0, false, false, 0, 200},
 	}
-	testScannerLookup = make(map[string]struct {
-		urlType       string
-		canonical     bool
-		metaCount     int
-		metaSizedErr  bool
-		titleCount    int
-		titleSizedErr bool
-		altTagsErr    bool
-		h1Count       int
-		status        int
-	})
 )
-
-func init() {
-	for i, v := range testScannerResults {
-		key := v.urlType
-		if i > 0 && key == "html" {
-			key = "html2"
-		}
-		testScannerLookup[key] = v
-	}
-}
 
 func TestScanNew(t *testing.T) {
 	t.Parallel()
@@ -154,11 +133,11 @@ func TestScanRun(t *testing.T) {
 
 	for _, children := range scanner.Tests {
 		for _, stat := range children {
-			lookupType := stat.URLType
-			if lookupType == "html" && stat.URL.Path == "/page2" {
-				lookupType = "html2"
+			key := stat.URLType
+			if key == "html" && stat.URL.Path == "/page2" {
+				key = "html2"
 			}
-			expectedResult := testScannerLookup[lookupType]
+			expectedResult := testScannerLookup[key]
 			if stat.URLType != expectedResult.urlType {
 				t.Errorf("Invalid URL type returned.")
 			}
