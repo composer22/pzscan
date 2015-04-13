@@ -52,6 +52,12 @@ func New(hostname string, maxRunMin int, maxWorkers int) *Scanner {
 	}
 }
 
+// PrintVersionAndExit prints the version of the scanner then exits.
+func PrintVersionAndExit() {
+	fmt.Printf("pzscan version %s\n", version)
+	os.Exit(0)
+}
+
 // Run starts the scanner and manages the jobs.
 func (s *Scanner) Run() {
 	// Trap all signals to quit.
@@ -74,12 +80,12 @@ func (s *Scanner) Run() {
 	s.jobq <- scanJobNew(s.RootURL, "html", p) // Create first job.  Assume its a page.
 	for {
 		select {
-		case doneJob, ok := <-s.doneCh:
+		case j, ok := <-s.doneCh:
 			if !ok {
 				s.Stop()
 				return
 			}
-			s.evaluate(doneJob)
+			s.evaluate(j)
 		default:
 			// Drop dead time reached?
 			if time.Now().After(s.ExpireTime) {
@@ -124,16 +130,16 @@ func (s *Scanner) handleSignals() {
 
 // evaluate examines the result of the job and launches new jobs if site children are found.
 func (s *Scanner) evaluate(job *scanJob) {
-	parent := job.Stat.ParentURL.String()
-	child := job.Stat.URL.String()
+	pURL := job.Stat.ParentURL.String()
+	cURL := job.Stat.URL.String()
 	// Initialize result slot
-	if _, ok := s.Tests[child]; !ok {
-		s.Tests[child] = make(map[string]*Stats)
+	if _, ok := s.Tests[cURL]; !ok {
+		s.Tests[cURL] = make(map[string]*Stats)
 	}
 
 	// Store the result of this scan and print it to the log.
-	if _, ok := s.Tests[child][parent]; !ok {
-		s.Tests[child][parent] = job.Stat
+	if _, ok := s.Tests[cURL][pURL]; !ok {
+		s.Tests[cURL][pURL] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
 	// Check for any URL's returned and create new jobs.
@@ -153,7 +159,7 @@ func (s *Scanner) evaluate(job *scanJob) {
 				continue
 			}
 			// If we haven't scanned this url, do it. [new][sourcepage]
-			if _, ok := s.Tests[c.URL.String()][child]; !ok {
+			if _, ok := s.Tests[c.URL.String()][cURL]; !ok {
 				s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 			}
 		default:
@@ -165,7 +171,7 @@ func (s *Scanner) evaluate(job *scanJob) {
 				}
 			} else { // Foreign asset
 				// If we haven't scanned this url, do it. [new][sourcepage]
-				if _, ok := s.Tests[c.URL.String()][child]; !ok {
+				if _, ok := s.Tests[c.URL.String()][cURL]; !ok {
 					s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 				}
 			}

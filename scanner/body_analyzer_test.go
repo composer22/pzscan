@@ -105,9 +105,9 @@ var (
 
 func TestBodyAnalyzerNew(t *testing.T) {
 	t.Parallel()
-	job := scanJobNew(testURLRoot, "html", nil)
-	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
-	a := bodyAnalyzerNew(job)
+	j := scanJobNew(testURLRoot, "html", nil)
+	j.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
+	a := bodyAnalyzerNew(j)
 	if fmt.Sprint(reflect.TypeOf(a.ScanJob)) != "*scanner.scanJob" {
 		t.Errorf("*scanJob not initialized.")
 	}
@@ -118,9 +118,9 @@ func TestBodyAnalyzerNew(t *testing.T) {
 
 func TestBodyAnalyzerAnchor(t *testing.T) {
 	t.Parallel()
-	job := scanJobNew(testURLRoot, "html", nil)
-	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
-	a := bodyAnalyzerNew(job)
+	j := scanJobNew(testURLRoot, "html", nil)
+	j.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyAnchorSource))
+	a := bodyAnalyzerNew(j)
 	a.analyzeBody()
 	found := false
 	for _, c := range a.ScanJob.Children {
@@ -132,9 +132,9 @@ func TestBodyAnalyzerAnchor(t *testing.T) {
 		t.Errorf("Ancor tag should have been found.")
 	}
 
-	job = scanJobNew(testURLRoot, "html", nil)
-	job.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyNegativeContent))
-	a = bodyAnalyzerNew(job)
+	j = scanJobNew(testURLRoot, "html", nil)
+	j.Body = ioutil.NopCloser(bytes.NewBufferString(testBodyNegativeContent))
+	a = bodyAnalyzerNew(j)
 	a.analyzeBody()
 	if len(a.ScanJob.Children) > 0 {
 		t.Errorf("Ancor tag should not have been found.")
@@ -144,10 +144,10 @@ func TestBodyAnalyzerAnchor(t *testing.T) {
 func TestBodyAnalyzerCanonical(t *testing.T) {
 	t.Parallel()
 	for _, tc := range testBodyCanonical {
-		source := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr, "")
-		job := scanJobNew(testURLRoot, "html", nil)
-		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
-		a := bodyAnalyzerNew(job)
+		s := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr, "")
+		j := scanJobNew(testURLRoot, "html", nil)
+		j.Body = ioutil.NopCloser(bytes.NewBufferString(s))
+		a := bodyAnalyzerNew(j)
 		a.analyzeBody()
 		if a.ScanJob.Stat.Canonical != tc.expectedResult {
 			t.Errorf(tc.message)
@@ -158,11 +158,11 @@ func TestBodyAnalyzerCanonical(t *testing.T) {
 func TestBodyAnalyzerMeta(t *testing.T) {
 	t.Parallel()
 	for _, tc := range testBodyDescription {
-		content := fmt.Sprintf(`%s="%s"`, tc.attr2, tc.content)
-		source := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr1, content)
-		job := scanJobNew(testURLRoot, "html", nil)
-		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
-		a := bodyAnalyzerNew(job)
+		c := fmt.Sprintf(`%s="%s"`, tc.attr2, tc.content)
+		s := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr1, c)
+		j := scanJobNew(testURLRoot, "html", nil)
+		j.Body = ioutil.NopCloser(bytes.NewBufferString(s))
+		a := bodyAnalyzerNew(j)
 		a.analyzeBody()
 		if a.ScanJob.Stat.MetaCount != tc.expectedSize ||
 			a.ScanJob.Stat.MetaSizedErr != tc.expectedResult {
@@ -174,10 +174,10 @@ func TestBodyAnalyzerMeta(t *testing.T) {
 func TestBodyAnalyzerTitle(t *testing.T) {
 	t.Parallel()
 	for _, tc := range testBodyTitle {
-		source := fmt.Sprintf(testBodyTemplateTag, tc.tag, tc.text, tc.tag)
-		job := scanJobNew(testURLRoot, "html", nil)
-		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
-		a := bodyAnalyzerNew(job)
+		s := fmt.Sprintf(testBodyTemplateTag, tc.tag, tc.text, tc.tag)
+		j := scanJobNew(testURLRoot, "html", nil)
+		j.Body = ioutil.NopCloser(bytes.NewBufferString(s))
+		a := bodyAnalyzerNew(j)
 		a.analyzeBody()
 		if a.ScanJob.Stat.TitleCount != tc.expectedSize ||
 			a.ScanJob.Stat.TitleSizedErr != tc.expectedResult {
@@ -189,10 +189,10 @@ func TestBodyAnalyzerTitle(t *testing.T) {
 func TestBodyAnalyzerImg(t *testing.T) {
 	t.Parallel()
 	for _, tc := range testBodyImg {
-		source := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr1, tc.attr2)
-		job := scanJobNew(testURLRoot, "html", nil)
-		job.Body = ioutil.NopCloser(bytes.NewBufferString(source))
-		a := bodyAnalyzerNew(job)
+		s := fmt.Sprintf(testBodyTemplateSource, tc.tag, tc.attr1, tc.attr2)
+		j := scanJobNew(testURLRoot, "html", nil)
+		j.Body = ioutil.NopCloser(bytes.NewBufferString(s))
+		a := bodyAnalyzerNew(j)
 		a.analyzeBody()
 		if a.ScanJob.Stat.AltTagsErr != tc.expectedResult ||
 			len(a.ScanJob.Children) != tc.expectedFind {
@@ -204,9 +204,9 @@ func TestBodyAnalyzerImg(t *testing.T) {
 func TestBodyH1(t *testing.T) {
 	t.Parallel()
 	for _, tc := range testBodyH1 {
-		job := scanJobNew(testURLRoot, "html", nil)
-		job.Body = ioutil.NopCloser(bytes.NewBufferString(tc.text))
-		a := bodyAnalyzerNew(job)
+		j := scanJobNew(testURLRoot, "html", nil)
+		j.Body = ioutil.NopCloser(bytes.NewBufferString(tc.text))
+		a := bodyAnalyzerNew(j)
 		a.analyzeBody()
 		if a.ScanJob.Stat.H1Count != tc.expectedResult {
 			t.Errorf(tc.message)

@@ -20,9 +20,9 @@ type scanJob struct {
 }
 
 // scanJobNew is a factory for creating a new job instance.
-func scanJobNew(u *url.URL, urlType string, parent *url.URL) *scanJob {
+func scanJobNew(u *url.URL, ut string, p *url.URL) *scanJob {
 	return &scanJob{
-		Stat:     StatsNew(u, urlType, parent),
+		Stat:     StatsNew(u, ut, p),
 		Children: []*scanJobChild{},
 	}
 }
@@ -30,6 +30,6 @@ func scanJobNew(u *url.URL, urlType string, parent *url.URL) *scanJob {
 // String is an implentation of the Stringer interface so the structure is returned as a
 // string to fmt.Print() etc.
 func (s *scanJob) String() string {
-	result, _ := json.Marshal(s)
-	return string(result)
+	j, _ := json.Marshal(s)
+	return string(j)
 }

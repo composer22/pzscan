@@ -35,7 +35,8 @@ Server options:
     -W, --workers MAX                MAX running workers allowed (default: 4).
 
 Common options:
-    -h, --help                       Show this message
+    -h, --help                       Show this message.
+    -V, --version                    Show version.
 
 Example:
 
@@ -45,16 +46,10 @@ Example:
 
 ```
 
-## Configuration
-
-```
-command line flags only
-
-```
 
 ## Building
 
-This code currently requires version 1.42 or higher of Go, but we encourage the use of the latest stable release.
+This code currently requires version 1.42 or higher of Golang.
 
 Information on Golang installation, including pre-built binaries, is available at
 <http://golang.org/doc/install>.  Stable branches of operating system packagers provided by
@@ -66,11 +61,10 @@ Run `go build` inside the directory to build.
 
 Run `go test ./...` to run the unit regression tests.
 
-A successful build run produces no messages and creates an executable called `clidemo` in this
-directory.  You can invoke that binary, with no options to start a server with acceptable standalone defaults.
+A successful build run produces no messages and creates an executable called `pzscan` in this
+directory.
 
 Run `go help` for more guidance, and visit <http://golang.org/> for tutorials, presentations, references and more.
-
 
 ## License
 
