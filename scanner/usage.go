@@ -6,7 +6,7 @@ import (
 )
 
 const usageStr = `
-Description: scan a host for embedded anchor links.
+Description: A simple site scanner in golang to validate links and content are SEO compliant.
 
 Usage: pzscan [options...]
 
@@ -18,13 +18,14 @@ Server options:
     -W, --workers MAX                MAX running workers allowed (default: 4).
 
 Common options:
-    -h, --help                       Show this message
+    -h, --help                       Show this message.
+    -V, --version                    Show version.
 
 Example:
 
-    # Scan craigslist; 1 processor; 2 min max; 10 worker go routines.
+    # Scan example.com; 1 processor; 2 min max; 10 worker go routines.
 
-    ./pzscan -H "craigslist.com" -X 1 -m 2 -W 10
+    ./pzscan -H "example.com" -X 1 -m 2 -W 10
 `
 
 // end help text

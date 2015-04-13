@@ -18,16 +18,16 @@ const (
 
 func TestStatsNew(t *testing.T) {
 	t.Parallel()
-	rootURL, _ := url.Parse("http://www.example.com")
-	url, _ := url.Parse("http://www.example.com/faq")
-	stat := StatsNew(url, "html", rootURL)
-	if stat.URL != url {
+	ru, _ := url.Parse("http://www.example.com")
+	u, _ := url.Parse("http://www.example.com/faq")
+	stat := StatsNew(u, "html", ru)
+	if stat.URL != u {
 		t.Errorf("Invalid URL")
 	}
 	if stat.URLType != "html" {
 		t.Errorf("Invalid URL type")
 	}
-	if stat.ParentURL != rootURL {
+	if stat.ParentURL != ru {
 		t.Errorf("Invalid Parent URL")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.URL)) != "*url.URL" {
@@ -46,37 +46,39 @@ func TestStatsNew(t *testing.T) {
 		t.Errorf("time.Time not initialized.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.Canonical)) != "bool" {
-		t.Errorf("bool not initialized.")
+		t.Errorf("bool expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.MetaCount)) != "int" {
-		t.Errorf("int not initialized.")
+		t.Errorf("int expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.MetaSizedErr)) != "bool" {
-		t.Errorf("bool not initialized.")
+		t.Errorf("bool expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.TitleCount)) != "int" {
-		t.Errorf("int not initialized.")
+		t.Errorf("int expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.TitleSizedErr)) != "bool" {
-		t.Errorf("bool not initialized.")
+		t.Errorf("bool expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.AltTagsErr)) != "bool" {
-		t.Errorf("bool not initialized.")
+		t.Errorf("bool expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.H1Count)) != "int" {
-		t.Errorf("int not initialized.")
+		t.Errorf("int expected.")
 	}
 	if fmt.Sprint(reflect.TypeOf(stat.StatusCode)) != "int" {
-		t.Errorf("int not initialized.")
+		t.Errorf("int expected.")
 	}
 }
 
 func TestStatsPrint(t *testing.T) {
 	t.Parallel()
-	rootURL, _ := url.Parse("http://www.example.com")
-	url, _ := url.Parse("http://www.example.com/faq")
-	stat := StatsNew(url, "html", rootURL)
-	if fmt.Sprint(stat) != TestStatPrintExpResult {
-		t.Errorf("Invalid Print of Stats")
+	ru, _ := url.Parse("http://www.example.com")
+	u, _ := url.Parse("http://www.example.com/faq")
+	s := StatsNew(u, "html", ru)
+	rslt := fmt.Sprint(s)
+	if rslt != TestStatPrintExpResult {
+		t.Errorf("Invalid Print of Stats. Expected: %s\n\nReceived: %s\n",
+			TestStatPrintExpResult, rslt)
 	}
 }

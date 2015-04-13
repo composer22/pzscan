@@ -1,4 +1,4 @@
-// pzscan is a simple web crawler and link tester.
+// pzscan is a simple SEO web crawler and link tester.
 package main
 
 import (
@@ -14,17 +14,26 @@ func main() {
 	var procs int
 	var maxRunMin int
 	var maxWorkers int
+	var showVersion bool
 
-	flag.StringVar(&hostname, "H", "example.com", "Hostname to scan.")
-	flag.StringVar(&hostname, "--hostname", "example.com", "Hostname to scan.")
-	flag.IntVar(&procs, "X", 1, "Maximum processor cores to use.")
-	flag.IntVar(&procs, "--procs", 1, "Maximum processor cores to use.")
-	flag.IntVar(&maxRunMin, "m", 5, "Maximum minutes you want to run this routine.")
-	flag.IntVar(&maxRunMin, "--minutes", 5, "Maximum minutes you want to run this routine.")
-	flag.IntVar(&maxWorkers, "W", 4, "Maximum Job Workers.")
-	flag.IntVar(&maxWorkers, "--workers", 4, "Maximum Job Workers.")
+	flag.StringVar(&hostname, "H", scanner.DefaultHostname, "Hostname to scan.")
+	flag.StringVar(&hostname, "--hostname", scanner.DefaultHostname, "Hostname to scan.")
+	flag.IntVar(&procs, "X", scanner.DefaultMaxProcs, "Maximum processor cores to use.")
+	flag.IntVar(&procs, "--procs", scanner.DefaultMaxProcs, "Maximum processor cores to use.")
+	flag.IntVar(&maxRunMin, "m", scanner.DefaultMaxMin, "Maximum minutes you want to run this routine.")
+	flag.IntVar(&maxRunMin, "--minutes", scanner.DefaultMaxMin, "Maximum minutes you want to run this routine.")
+	flag.IntVar(&maxWorkers, "W", scanner.DefaultMaxWorkers, "Maximum Job Workers.")
+	flag.IntVar(&maxWorkers, "--workers", scanner.DefaultMaxWorkers, "Maximum Job Workers.")
+	flag.BoolVar(&showVersion, "V", false, "Show version")
+	flag.BoolVar(&showVersion, "--version", false, "Show version")
 	flag.Usage = scanner.PrintUsageAndExit
 	flag.Parse()
+
+	// Version flag request?
+	if showVersion {
+		scanner.PrintVersionAndExit()
+	}
+
 	runtime.GOMAXPROCS(procs)
 	s := scanner.New(hostname, maxRunMin, maxWorkers)
 	s.Run()

@@ -24,17 +24,17 @@ type Stats struct {
 }
 
 // StatsNew is a factory for creating a new Stats instance.
-func StatsNew(u *url.URL, urlType string, parent *url.URL) *Stats {
+func StatsNew(u *url.URL, ut string, p *url.URL) *Stats {
 	return &Stats{
 		URL:       u,
-		URLType:   urlType,
-		ParentURL: parent,
+		URLType:   ut,
+		ParentURL: p,
 	}
 }
 
 // String is an implentation of the Stringer interface so the structure is returned as a
 // string to fmt.Print() etc.
 func (s *Stats) String() string {
-	result, _ := json.Marshal(s)
-	return string(result)
+	j, _ := json.Marshal(s)
+	return string(j)
 }

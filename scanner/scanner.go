@@ -23,8 +23,6 @@ var (
 
 // Scanner is a manager of scanning jobs and evaluates the results of the workers.
 type Scanner struct {
-	mu         sync.Mutex                   // For locking access.
-	log        *logger.Logger               // Logger for writing final results.
 	RootURL    *url.URL                     // The original URL that we started the scan from.
 	Tests      map[string]map[string]*Stats // URL test results go in here.
 	MaxRunMin  int                          // The Maximum number of minutes we want the scanner to run.
@@ -32,24 +30,32 @@ type Scanner struct {
 	StartTime  time.Time                    // When the scanner started runnning.
 	ExpireTime time.Time                    // The expire time: when the scanner should stop running.
 	EndTime    time.Time                    // When the scanner ended.
-	jobq       chan *scanJob                // Channel to send jobs.
-	doneCh     chan *scanJob                // Channel to receive done jobs.
+	mu         sync.Mutex                   // For locking access.
 	wg         sync.WaitGroup               // Synchronize close() of job channel.
 	stopOnce   sync.Once                    // Used to close down the system once and once only.
+	log        *logger.Logger               // Logger for writing final results.
+	jobq       chan *scanJob                // Channel to send jobs.
+	doneCh     chan *scanJob                // Channel to receive done jobs.
 }
 
 // New is a factory function that creates a new Scanner instance.
 func New(hostname string, maxRunMin int, maxWorkers int) *Scanner {
 	u, _ := url.Parse(fmt.Sprintf("http://%s", hostname))
 	return &Scanner{
-		log:        logger.New(logger.UseDefault, false),
 		RootURL:    u,
 		Tests:      make(map[string]map[string]*Stats),
 		MaxRunMin:  maxRunMin,
 		MaxWorkers: maxWorkers,
+		log:        logger.New(logger.UseDefault, false),
 		jobq:       make(chan *scanJob, maxJobs),
 		doneCh:     make(chan *scanJob, maxJobs),
 	}
+}
+
+// PrintVersionAndExit prints the version of the scanner then exits.
+func PrintVersionAndExit() {
+	fmt.Printf("pzscan version %s\n", version)
+	os.Exit(0)
 }
 
 // Run starts the scanner and manages the jobs.
@@ -74,12 +80,12 @@ func (s *Scanner) Run() {
 	s.jobq <- scanJobNew(s.RootURL, "html", p) // Create first job.  Assume its a page.
 	for {
 		select {
-		case doneJob, ok := <-s.doneCh:
+		case j, ok := <-s.doneCh:
 			if !ok {
 				s.Stop()
 				return
 			}
-			s.evaluate(doneJob)
+			s.evaluate(j)
 		default:
 			// Drop dead time reached?
 			if time.Now().After(s.ExpireTime) {
@@ -124,16 +130,16 @@ func (s *Scanner) handleSignals() {
 
 // evaluate examines the result of the job and launches new jobs if site children are found.
 func (s *Scanner) evaluate(job *scanJob) {
-	parent := job.Stat.ParentURL.String()
-	child := job.Stat.URL.String()
+	pURL := job.Stat.ParentURL.String()
+	cURL := job.Stat.URL.String()
 	// Initialize result slot
-	if _, ok := s.Tests[child]; !ok {
-		s.Tests[child] = make(map[string]*Stats)
+	if _, ok := s.Tests[cURL]; !ok {
+		s.Tests[cURL] = make(map[string]*Stats)
 	}
 
 	// Store the result of this scan and print it to the log.
-	if _, ok := s.Tests[child][parent]; !ok {
-		s.Tests[child][parent] = job.Stat
+	if _, ok := s.Tests[cURL][pURL]; !ok {
+		s.Tests[cURL][pURL] = job.Stat
 		s.log.Infof(fmt.Sprint(job.Stat))
 	}
 	// Check for any URL's returned and create new jobs.
@@ -147,12 +153,13 @@ func (s *Scanner) evaluate(job *scanJob) {
 			c.URL.Host = s.RootURL.Host
 		}
 		switch c.URLType {
-		case "html": // Don't scan foreign pages.
+		case "html":
+			// Don't scan foreign pages.
 			if !strings.Contains(c.URL.Host, s.RootURL.Host) {
 				continue
 			}
-			// If we haven't scanned this url, do it. [new][pagefound]
-			if _, ok := s.Tests[c.URL.String()][child]; !ok {
+			// If we haven't scanned this url, do it. [new][sourcepage]
+			if _, ok := s.Tests[c.URL.String()][cURL]; !ok {
 				s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 			}
 		default:
@@ -163,8 +170,8 @@ func (s *Scanner) evaluate(job *scanJob) {
 					s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 				}
 			} else { // Foreign asset
-				// If we haven't scanned this url, do it. [new][pagefound]
-				if _, ok := s.Tests[c.URL.String()][child]; !ok {
+				// If we haven't scanned this url, do it. [new][sourcepage]
+				if _, ok := s.Tests[c.URL.String()][cURL]; !ok {
 					s.jobq <- scanJobNew(c.URL, c.URLType, job.Stat.URL)
 				}
 			}

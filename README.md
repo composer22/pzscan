@@ -1,10 +1,10 @@
 # pzscan
 [![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/composer22/pzscan.svg?branch=master)](http://travis-ci.org/composer22/pzscan)
-[![Current Release](https://img.shields.io/badge/release-none-blue.svg)](https://github.com/composer22/pzscan/releases/tag/none)
+[![Current Release](https://img.shields.io/badge/release-v0.1.0--alpha-brightgreen.svg)](https://github.com/composer22/pzscan/releases/tag/v0.1.0-alpha)
 [![Coverage Status](https://coveralls.io/repos/composer22/pzscan/badge.svg?branch=master)](https://coveralls.io/r/composer22/pzscan?branch=master)
 
-A simple site scanner to validate links and content is SEO compliant.
+A simple site scanner in golang to validate links and content are SEO compliant.
 
 ## Description
 
@@ -17,7 +17,9 @@ This simple application will transverse a given URL and report back the followin
 * Images have "alt" attributes.
 * Pages are allowed only one "h1" tag.
 
-Each element result is written to the log as INFO with a json encoded structure of the statistics of the scan.
+Note:  Images, javascript, and css files are tested for downloading separately. css files are not parsed for img content.
+
+Each element result is written to the log as an INFO message with a json encoded structure of the statistics of the scan. These can then be imported into a database for queries.
 
 ## Usage
 
@@ -33,26 +35,21 @@ Server options:
     -W, --workers MAX                MAX running workers allowed (default: 4).
 
 Common options:
-    -h, --help                       Show this message
+    -h, --help                       Show this message.
+    -V, --version                    Show version.
 
 Example:
 
-    # Scan craigslist; 1 processor; 2 min max; 10 worker go routines.
+    # Scan example.com; 1 processor; 2 min max; 10 worker go routines.
 
-    ./pzscan -H "craigslist.com" -X 1 -m 2 -W 10
-
-```
-
-## Configuration
+    ./pzscan -H "example.com" -X 1 -m 2 -W 10
 
 ```
-command line flags only
 
-```
 
 ## Building
 
-This code currently requires version 1.42 or higher of Go, but we encourage the use of the latest stable release.
+This code currently requires version 1.42 or higher of Golang.
 
 Information on Golang installation, including pre-built binaries, is available at
 <http://golang.org/doc/install>.  Stable branches of operating system packagers provided by
@@ -64,11 +61,10 @@ Run `go build` inside the directory to build.
 
 Run `go test ./...` to run the unit regression tests.
 
-A successful build run produces no messages and creates an executable called `clidemo` in this
-directory.  You can invoke that binary, with no options to start a server with acceptable standalone defaults.
+A successful build run produces no messages and creates an executable called `pzscan` in this
+directory.
 
 Run `go help` for more guidance, and visit <http://golang.org/> for tutorials, presentations, references and more.
-
 
 ## License
 
