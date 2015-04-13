@@ -19,39 +19,41 @@ const (
 
 func TestScanJobNew(t *testing.T) {
 	t.Parallel()
-	rootURL, _ := url.Parse("http://www.example.com")
-	url, _ := url.Parse("http://www.example.com/faq")
-	job := scanJobNew(url, "html", rootURL)
-	if job.Stat.URL != url {
-		t.Errorf("Invalid URL")
+	ru, _ := url.Parse("http://www.example.com")
+	u, _ := url.Parse("http://www.example.com/faq")
+	j := scanJobNew(u, "html", ru)
+	if j.Stat.URL != u {
+		t.Errorf("Invalid URL.")
 	}
-	if job.Stat.URLType != "html" {
-		t.Errorf("Invalid URL type")
+	if j.Stat.URLType != "html" {
+		t.Errorf("Invalid URL type.")
 	}
-	if job.Stat.ParentURL != rootURL {
-		t.Errorf("Invalid Parent URL")
+	if j.Stat.ParentURL != ru {
+		t.Errorf("Invalid Parent URL.")
 	}
-	if len(job.Children) != 0 {
-		t.Errorf("Invalid children")
+	if len(j.Children) != 0 {
+		t.Errorf("Invalid children.")
 	}
-	if fmt.Sprint(reflect.TypeOf(job.Stat)) != "*scanner.Stats" {
+	if fmt.Sprint(reflect.TypeOf(j.Stat)) != "*scanner.Stats" {
 		t.Errorf("*scanner.Stats not initialized.")
 	}
-	if job.Body != nil {
+	if j.Body != nil {
 		t.Errorf("Body not initialized correcly.")
 	}
 
-	if fmt.Sprint(reflect.TypeOf(job.Children)) != "[]*scanner.scanJobChild" {
+	if fmt.Sprint(reflect.TypeOf(j.Children)) != "[]*scanner.scanJobChild" {
 		t.Errorf("[]*scanJobChild not initialized.")
 	}
 }
 
 func TestScanJobPrint(t *testing.T) {
 	t.Parallel()
-	rootURL, _ := url.Parse("http://www.example.com")
-	url, _ := url.Parse("http://www.example.com/faq")
-	job := scanJobNew(url, "html", rootURL)
-	if fmt.Sprint(job) != TestScanJobPrintExpResult {
-		t.Errorf("Invalid Print of scan job")
+	ru, _ := url.Parse("http://www.example.com")
+	u, _ := url.Parse("http://www.example.com/faq")
+	j := scanJobNew(u, "html", ru)
+	rslt := fmt.Sprint(j)
+	if rslt != TestScanJobPrintExpResult {
+		t.Errorf("Invalid Print of scan job. Expected: %s\n\nReceived: %s\n",
+			TestScanJobPrintExpResult, rslt)
 	}
 }

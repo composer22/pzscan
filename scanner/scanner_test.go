@@ -71,18 +71,11 @@ var (
 
 func TestScanNew(t *testing.T) {
 	t.Parallel()
-	var testTimeEmpty time.Time
+	var tTimeEmpty time.Time
 	s := New(testRootURL, testMaxRunMin, testMaxWorkers)
 
-	if fmt.Sprint(reflect.TypeOf(s.mu)) != "sync.Mutex" {
-		t.Errorf("sync.Mutex not initialized.")
-	}
-	if s.log == nil {
-		t.Errorf("logger.Logger not initialized.")
-	}
-	testURL, _ := url.Parse(fmt.Sprintf("http://%s", testRootURL))
-
-	if s.RootURL.String() != testURL.String() {
+	tURL, _ := url.Parse(fmt.Sprintf("http://%s", testRootURL))
+	if s.RootURL.String() != tURL.String() {
 		t.Errorf("RootURL not initialized.")
 	}
 	if len(s.Tests) != 0 {
@@ -91,14 +84,22 @@ func TestScanNew(t *testing.T) {
 	if s.MaxRunMin != testMaxRunMin {
 		t.Errorf("MaxRunMin not initialized.")
 	}
-	if s.StartTime != testTimeEmpty {
+	if s.MaxWorkers != testMaxWorkers {
+		t.Errorf("MaxWorkers not initialized.")
+	}
+	if s.StartTime != tTimeEmpty {
 		t.Errorf("StartTime not initialized.")
 	}
-	if fmt.Sprint(reflect.TypeOf(s.jobq)) != "chan *scanner.scanJob" {
-		t.Errorf("chan *scanner.scanJob not initialized.")
+
+	if s.ExpireTime != tTimeEmpty {
+		t.Errorf("ExpireTime not initialized.")
 	}
-	if fmt.Sprint(reflect.TypeOf(s.doneCh)) != "chan *scanner.scanJob" {
-		t.Errorf("chan *scanner.scanJob not initialized.")
+
+	if s.EndTime != tTimeEmpty {
+		t.Errorf("EndTime not initialized.")
+	}
+	if fmt.Sprint(reflect.TypeOf(s.mu)) != "sync.Mutex" {
+		t.Errorf("sync.Mutex not initialized.")
 	}
 	if fmt.Sprint(reflect.TypeOf(s.wg)) != "sync.WaitGroup" {
 		t.Errorf("sync.WaitGroup not initialized.")
@@ -106,60 +107,69 @@ func TestScanNew(t *testing.T) {
 	if fmt.Sprint(reflect.TypeOf(s.stopOnce)) != "sync.Once" {
 		t.Errorf("sync.Once not initialized.")
 	}
+	if s.log == nil {
+		t.Errorf("logger.Logger not initialized.")
+	}
+	if fmt.Sprint(reflect.TypeOf(s.jobq)) != "chan *scanner.scanJob" {
+		t.Errorf("chan *scanner.scanJob not initialized.")
+	}
+	if fmt.Sprint(reflect.TypeOf(s.doneCh)) != "chan *scanner.scanJob" {
+		t.Errorf("chan *scanner.scanJob not initialized.")
+	}
 }
 
 func TestScanRun(t *testing.T) {
-	handlerPage1 := func(w http.ResponseWriter, r *http.Request) {
-		page := fmt.Sprintf(testValidPageTemplate,
+	hPage1 := func(w http.ResponseWriter, r *http.Request) {
+		pg := fmt.Sprintf(testValidPageTemplate,
 			strings.Repeat("*", metaDescriptionMin),
 			strings.Repeat("*", titleMin))
-		io.WriteString(w, page)
+		io.WriteString(w, pg)
 	}
-	handlerPage2 := func(w http.ResponseWriter, r *http.Request) {
+	hPage2 := func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, testInvalidPage)
 	}
-	handlerImage := func(w http.ResponseWriter, r *http.Request) {
+	hImage := func(w http.ResponseWriter, r *http.Request) {
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlerPage1)
-	mux.HandleFunc("/page2", handlerPage2)
-	mux.HandleFunc("/example.jpg", handlerImage)
+	mux.HandleFunc("/", hPage1)
+	mux.HandleFunc("/page2", hPage2)
+	mux.HandleFunc("/example.jpg", hImage)
 
-	server := httptest.NewServer(mux)
-	u, _ := url.Parse(fmt.Sprint(server.URL))
-	scanner := New(u.Host, testMaxRunMin, testMaxWorkers)
-	scanner.Run()
-	server.Close()
+	srvr := httptest.NewServer(mux)
+	u, _ := url.Parse(fmt.Sprint(srvr.URL))
+	scnr := New(u.Host, testMaxRunMin, testMaxWorkers)
+	scnr.Run()
+	srvr.Close()
 
-	for _, children := range scanner.Tests {
-		for _, stat := range children {
-			key := stat.URLType
-			if key == "html" && stat.URL.Path == "/page2" {
-				key = "html2"
+	for _, chdrn := range scnr.Tests {
+		for _, stat := range chdrn {
+			k := stat.URLType
+			if k == "html" && stat.URL.Path == "/page2" {
+				k = "html2"
 			}
-			expectedResult := testScannerLookup[key]
-			if stat.URLType != expectedResult.urlType {
+			expResult := testScannerLookup[k]
+			if stat.URLType != expResult.urlType {
 				t.Errorf("Invalid URL type returned.")
 			}
-			if stat.Canonical != expectedResult.canonical {
+			if stat.Canonical != expResult.canonical {
 				t.Errorf("Canonical tested incorrectly.")
 			}
-			if stat.MetaCount != expectedResult.metaCount {
+			if stat.MetaCount != expResult.metaCount {
 				t.Errorf("MetaCount tested incorrectly.")
 			}
-			if stat.MetaSizedErr != expectedResult.metaSizedErr {
+			if stat.MetaSizedErr != expResult.metaSizedErr {
 				t.Errorf("MetaSizedErr tested incorrectly.")
 			}
-			if stat.TitleCount != expectedResult.titleCount {
+			if stat.TitleCount != expResult.titleCount {
 				t.Errorf("TitleCount tested incorrectly.")
 			}
-			if stat.TitleSizedErr != expectedResult.titleSizedErr {
+			if stat.TitleSizedErr != expResult.titleSizedErr {
 				t.Errorf("TitleSizedErr tested incorrectly.")
 			}
-			if stat.AltTagsErr != expectedResult.altTagsErr {
+			if stat.AltTagsErr != expResult.altTagsErr {
 				t.Errorf("AltTagsErr tested incorrectly.")
 			}
-			if stat.H1Count != expectedResult.h1Count {
+			if stat.H1Count != expResult.h1Count {
 				t.Errorf("H1Count tested incorrectly.")
 			}
 			if stat.StatusCode != http.StatusOK {
@@ -167,7 +177,12 @@ func TestScanRun(t *testing.T) {
 			}
 		}
 	}
-	scanner.Stop()
+	scnr.Stop()
+}
+
+func TestScanVersionAndExit(t *testing.T) {
+	t.Parallel()
+	t.Skip("Cannot test due to Exit()")
 }
 
 func TestScanStop(t *testing.T) {
