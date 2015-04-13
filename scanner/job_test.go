@@ -51,7 +51,9 @@ func TestScanJobPrint(t *testing.T) {
 	ru, _ := url.Parse("http://www.example.com")
 	u, _ := url.Parse("http://www.example.com/faq")
 	j := scanJobNew(u, "html", ru)
-	if fmt.Sprint(j) != TestScanJobPrintExpResult {
-		t.Errorf("Invalid Print of scan job.")
+	rslt := fmt.Sprint(j)
+	if rslt != TestScanJobPrintExpResult {
+		t.Errorf("Invalid Print of scan job. Expected: %s\n\nReceived: %s\n",
+			TestScanJobPrintExpResult, rslt)
 	}
 }
