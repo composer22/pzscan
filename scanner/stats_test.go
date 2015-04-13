@@ -76,7 +76,9 @@ func TestStatsPrint(t *testing.T) {
 	ru, _ := url.Parse("http://www.example.com")
 	u, _ := url.Parse("http://www.example.com/faq")
 	s := StatsNew(u, "html", ru)
-	if fmt.Sprint(s) != TestStatPrintExpResult {
-		t.Errorf("Invalid Print of Stats")
+	rslt := fmt.Sprint(s)
+	if rslt != TestStatPrintExpResult {
+		t.Errorf("Invalid Print of Stats. Expected: %s\n\nReceived: %s\n",
+			TestStatPrintExpResult, rslt)
 	}
 }
