@@ -52,8 +52,7 @@ Example:
 This code currently requires version 1.42 or higher of Golang.
 
 Information on Golang installation, including pre-built binaries, is available at
-<http://golang.org/doc/install>.  Stable branches of operating system packagers provided by
-your OS vendor may not be sufficient.
+<http://golang.org/doc/install>.
 
 Run `go version` to see the version of Go which you have installed.
 

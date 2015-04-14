@@ -88,24 +88,24 @@ func New(lvl int, clrs bool) *Logger {
 }
 
 // SetLogLevel allows a user to set the log level of the logger.
-func (l *Logger) SetLogLevel(lLvl int) error {
-	if lLvl < UseDefault || lLvl > Debug {
-		return errors.New(fmt.Sprintf("%d log level arg is not in valid range.", lLvl))
+func (l *Logger) SetLogLevel(lvl int) error {
+	if lvl < UseDefault || lvl > Debug {
+		return errors.New(fmt.Sprintf("%d log level arg is not in valid range.", lvl))
 	}
 
-	if lLvl == UseDefault {
-		lLvl = Info
+	if lvl == UseDefault {
+		lvl = Info
 	}
-	l.level = lLvl
+	l.level = lvl
 	return nil
 }
 
 // SetExitFunc allows a user to set the exit function of the logger.
-func (l *Logger) SetExitFunc(exitF exiter) error {
-	if exitF == nil {
+func (l *Logger) SetExitFunc(e exiter) error {
+	if e == nil {
 		return errors.New("Exit function is manadatory.")
 	}
-	l.exit = exitF
+	l.exit = e
 	return nil
 }
 
@@ -198,7 +198,7 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 	}
 }
 
-// output prints a message directly into the system log. Normally, you should use level message functions.
+// Output prints a message directly into the system log. Normally, you should use level message functions.
 // so that level can trap the write.
 func (l *Logger) Output(cd int, lbl string, format string, v ...interface{}) error {
 	var d int = 2

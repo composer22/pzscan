@@ -16,7 +16,7 @@ func TestSetAndGetLogLevel(t *testing.T) {
 	}
 	err := l.SetLogLevel(Info)
 	if err != nil {
-		t.Errorf("Set log level func should have been called correctly for value.")
+		t.Errorf("Set log level func should have been called correctly for value Info.")
 	}
 	if l.level != Info {
 		t.Errorf("Set log level func should have set new value correctly.")
@@ -24,7 +24,7 @@ func TestSetAndGetLogLevel(t *testing.T) {
 
 	err = l.SetLogLevel(UseDefault)
 	if err != nil {
-		t.Errorf("Set log level func should have been called correctly for value.")
+		t.Errorf("Set log level func should have been called correctly for value UseDefault.")
 	}
 
 	if l.level != Info {
