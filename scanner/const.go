@@ -1,7 +1,7 @@
 package scanner
 
 const (
-	version           = "0.1.0"
+	version           = "0.1.1-alpha"
 	DefaultHostname   = "example.com"
 	DefaultMaxProcs   = 1
 	DefaultMaxMin     = 5
