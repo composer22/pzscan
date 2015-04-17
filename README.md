@@ -1,7 +1,7 @@
 # pzscan
 [![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/composer22/pzscan.svg?branch=master)](http://travis-ci.org/composer22/pzscan)
-[![Current Release](https://img.shields.io/badge/release-v0.1.0--alpha-brightgreen.svg)](https://github.com/composer22/pzscan/releases/tag/v0.1.0-alpha)
+[![Current Release](https://img.shields.io/badge/release-v0.1.1--alpha-brightgreen.svg)](https://github.com/composer22/pzscan/releases/tag/v0.1.1-alpha)
 [![Coverage Status](https://coveralls.io/repos/composer22/pzscan/badge.svg?branch=master)](https://coveralls.io/r/composer22/pzscan?branch=master)
 
 A simple site scanner in golang to validate links and content are SEO compliant.
