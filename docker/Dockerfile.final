@@ -1,0 +1,9 @@
+# For additional unix tools in a small image use FROM busybox below.
+FROM scratch
+MAINTAINER Bryan-Kirk Reinhardt
+
+ADD pzscan /pzscan
+
+CMD []
+
+ENTRYPOINT ["/pzscan", "-H", "example.com", "-X", "1", "-m", "2", "-W", "10"]

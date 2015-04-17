@@ -65,6 +65,17 @@ directory.
 
 Run `go help` for more guidance, and visit <http://golang.org/> for tutorials, presentations, references and more.
 
+## Docker Image
+
+A prebuilt docker image is available at (http://www.docker.com) [pzscan](https://registry.hub.docker.com/u/composer22/pzscan/)
+
+If you have docker installed, run:
+```
+docker pull composer22/pzscan:latest
+```
+See /docker directory README for more information on how to run it.
+
+
 ## License
 
 (The MIT License)
